@@ -1,0 +1,340 @@
+import React, { useEffect, useState } from "react";
+import {
+  FaUser,
+  FaIdCard,
+  FaPhone,
+  FaVenusMars,
+  FaBirthdayCake,
+  FaNotesMedical,
+  FaTint,
+  FaRulerCombined,
+  FaHeartbeat,
+  FaAllergies,
+  FaExclamationTriangle,
+  FaDownload,
+  FaFileAlt,
+  FaExclamationCircle,
+  FaArrowDown,
+  FaRing,
+  FaBriefcase,
+  FaWeight,
+} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
+export default function PatientDashboard() {
+  const navigate = useNavigate();
+  const [patient, setPatient] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // جلب بيانات المريض من localStorage
+  useEffect(() => {
+    const savedPatient = localStorage.getItem("patient"); 
+    if (savedPatient) {
+      try {
+        const parsed = JSON.parse(savedPatient);
+        setPatient(parsed);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error parsing patient data:", err);
+        navigate("/", { replace: true });
+      }
+    } else {
+      navigate("/", { replace: true }); 
+    }
+  }, [navigate]);
+
+  const calculateAge = (dob) => {
+    if (!dob) return "N/A";
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) age--;
+    return age;
+  };
+
+  const calculateBMI = (weight, height) => {
+    if (!weight || !height) return "N/A";
+    const heightInMeters = height / 100;
+    const bmi = weight / (heightInMeters * heightInMeters);
+    return bmi.toFixed(1);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-[#e9f3fb]">
+        <p className="text-2xl text-blue-900">Loading patient data...</p>
+      </div>
+    );
+  }
+
+  if (!patient) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-[#e9f3fb]">
+        <p className="text-2xl text-red-600">No patient data found</p>
+      </div>
+    );
+  }
+
+  // ---- تحويل الـ string إلى array لكل من current_medications, allergies, chronic_diseases ----
+  const medicationsList = patient.current_medications
+    ? patient.current_medications.split("|").map((item) => item.trim())
+    : [];
+
+  const allergiesList = patient.allergies
+    ? patient.allergies.split("|").map((item) => item.trim())
+    : [];
+
+  const chronicList = patient.chronic_diseases
+    ? patient.chronic_diseases.split("|").map((item) => item.trim())
+    : [];
+
+  return (
+    <div className="min-h-screen bg-[#e9f3fb] px-2 py-1 font-sans">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-5">
+          <div>
+            <button 
+              onClick={() => {
+                localStorage.removeItem("patient");
+                navigate("/", { replace: true });
+              }}
+              className="text-blue-900 font-semibold text-lg mt-5"
+            >
+              ← back
+            </button>
+            <h1 className="text-3xl font-bold text-blue-900 mt-5">
+              Welcome back {patient.full_name || "Patient"}
+            </h1>
+          </div>
+          
+          {patient?.image && (
+            <div className="flex justify-center">
+              <img 
+                src={patient.image} 
+                alt="Patient" 
+                className="w-32 h-32 rounded-full shadow-lg object-cover border-4 border-white"
+              />
+            </div>
+          )}
+        </div>
+
+        <h2 className="text-azraq-400 text-2xl mb-10">
+          Here's your medical summary and treatment history.
+        </h2>
+
+        {/* Info Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5 mb-8">
+          <InfoCard icon={<FaUser />} title="Full name" value={patient.full_name || "N/A"} />
+          <InfoCard icon={<FaIdCard />} title="National id" value={patient.national_id || "N/A"} />
+          <InfoCard icon={<FaPhone />} title="Phone number" value={patient.phone_number || "N/A"} />
+          <InfoCard icon={<FaVenusMars />} title="Age & Gender" value={`${calculateAge(patient.date_of_birth)} yrs, ${patient.gender || "N/A"}`} />
+          <InfoCard icon={<FaBirthdayCake />} title="Date of birth" value={patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : "N/A"} />
+          <InfoCard icon={<FaNotesMedical />} title="Patient ID" value={patient.patient_id || "N/A"} />
+          <InfoCard icon={<FaTint />} title="Blood Type" value={patient.blood_type || "N/A"} />
+          <InfoCard icon={<FaRulerCombined />} title="Height & Weight" value={`${patient.height || "N/A"} cm / ${patient.weight || "N/A"} kg`} />
+          <InfoCard icon={<FaHeartbeat />} title="Chronic Diseases" value="" />
+          <InfoCard icon={<FaAllergies />} title="Allergies" value="" />
+          <InfoCard icon={<FaRing />} title="Social Status" value={patient.marital_status || "Null"} />
+          <InfoCard icon={<FaBriefcase />} title="Job" value={patient.job || "Null"} />
+          <InfoCard icon={<FaWeight />} title="BMI" value={calculateBMI(patient.weight, patient.height)} />
+        </div>
+
+        {/* Chronic Diseases List */}
+        {chronicList.length > 0 && (
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-blue-900 mb-2">Chronic Diseases</h2>
+            {chronicList.map((item, i) => (
+              <MedItem key={i} title={item} lines={[]} date="N/A" />
+            ))}
+          </div>
+        )}
+
+        {/* Allergies List */}
+        {allergiesList.length > 0 && (
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-blue-900 mb-2">Allergies</h2>
+            {allergiesList.map((item, i) => (
+              <MedItem key={i} title={item} lines={[]} date="N/A" />
+            ))}
+          </div>
+        )}
+
+        {/* Current Medications */}
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold text-blue-900 mb-2">Current Medications</h2>
+          {medicationsList.length > 0 ? (
+            medicationsList.map((med, i) => <MedItem key={i} title={med} lines={["Consult doctor for dosage"]} date="N/A" />)
+          ) : (
+            <p className="text-gray-600 text-center py-10">No current medications</p>
+          )}
+        </div>
+
+        {/* AI Insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+          <div>
+            <h2 className="text-xl font-bold text-blue-900 mb-4">AI Insights</h2>
+            <div className="flex items-start gap-3 p-4">
+              <div className="flex items-center justify-center w-10 h-10 bg-black">
+                <FaExclamationCircle className="text-yellow-600 bg-black text-xl" />
+              </div>
+              <div>
+                <p className="font-semibold text-black-800 text-sm">Last visit was 30 days ago</p>
+                <p className="text-gray-600 text-sm">Consider scheduling a follow-up with your doctor</p>
+              </div>
+              <button 
+                onClick={() => navigate("/Reports")}
+                className="text-blue-700 text-base font-semibold hover:text-blue-900 transition-all duration-300 transform hover:scale-105 active:scale-95 mt-4"
+              >
+                Schedule Now
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center gap-5">
+                <p className="text-4xl font-semibold text-blue-900">AI</p>
+                <div>
+                  <p className="font-semibold text-blue-900 text-sm">Please speak with the chatbot</p>
+                  <p className="text-gray-600 text-xs">Talk to the chatbot to enter your symptoms</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => navigate("/chatBot")}
+                className="bg-azraq-500 text-white px-4 py-1 mr-20 rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300"
+              >
+                Speak Now
+              </button>
+            </div>
+          </div>
+
+          {/* Reports & Medications */}
+          <div>
+            <h2 className="text-2xl font-bold text-blue-900 mb-4">Current Medications</h2>
+            <div className="bg-[#dfeffb] rounded-lg p-6 shadow-md space-y-4 relative min-h-[450px]">
+              {medicationsList.length > 0 ? (
+                medicationsList.map((med, i) => (
+                  <MedItem key={i} title={med} lines={["Consult doctor for dosage"]} date="N/A" />
+                ))
+              ) : (
+                <p className="text-gray-600 text-center py-10">No current medications</p>
+              )}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-blue-700 animate-bounce">
+                <FaArrowDown className="text-3xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Reports & Scans */}
+        <div className="bg-babyblue text-white p-6 shadow-md mb-8 flex justify-between items-center">
+          <div>
+            <h3 className="font-bold text-lg">Reports & Scans</h3>
+            <p className="text-sm opacity-90">View all your medical reports and scan results</p>
+          </div>
+          <button 
+            onClick={() => navigate("/Patient-Reports")}
+            className="bg-[#234a78] px-6 py-3 rounded-lg shadow-md hover:bg-[#1b3a5e] transition-all duration-300 transform hover:scale-105"
+          >
+            View All Reports
+          </button>
+        </div>
+
+        {/* Treatment History */}
+        <h2 className="text-3xl font-bold text-blue-900 mb-4">Treatment History</h2>
+        <div className="bg-white shadow-md overflow-hidden">
+          <table className="min-w-full text-lg">
+            <thead className="bg-azraq-500 text-left text-white">
+              <tr>
+                <th className="p-5">Date</th>
+                <th className="p-5">Department</th>
+                <th className="p-5">Doctor</th>
+                <th className="p-5">Diagnosis</th>
+                <th className="p-5">Treatment</th>
+                <th className="p-5">Prescription</th>
+              </tr>
+            </thead>
+            <tbody>
+              {patient.treatment_history && patient.treatment_history.length > 0 ? (
+                patient.treatment_history.map((history, index) => (
+                  <HistoryRow
+                    key={index}
+                    date={history.date || "N/A"}
+                    dept={history.department || "N/A"}
+                    doctor={history.doctor || "N/A"}
+                    diag={history.diagnosis || "N/A"}
+                    treat={history.treatment || "N/A"}
+                  />
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="p-4 text-center text-gray-600">No treatment history available</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-center gap-4 mt-8">
+          <ActionButton icon={<FaFileAlt />} text="View Prescriptions" bgColor="#5593CA" onClick={() => navigate("/prescriptions")} />
+          <ActionButton icon={<FaDownload />} text="Download Report" bgColor="#5593CA" onClick={() => alert("Download feature coming soon!")} />
+          <ActionButton icon={<FaNotesMedical />} text="AI Summary" bgColor="#224D7F" onClick={() => navigate("/ai-summary")} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Components
+function InfoCard({ icon, title, value }) {
+  return (
+    <div className="bg-[#5d9ed0] text-white rounded-xl py-6 px-3 flex flex-col items-start justify-start shadow-md hover:scale-105 transition-transform">
+      <div className="text-black text-3xl mb-3 ml-1">{icon}</div>
+      <p className="text-sm opacity-90">{title}</p>
+      <p className="text-base font-semibold mt-1">{value}</p>
+    </div>
+  );
+}
+
+function MedItem({ title, lines, date }) {
+  return (
+    <div className="bg-[#93c0e6] p-3 rounded-md flex justify-between items-start shadow-sm">
+      <div>
+        <p className="font-semibold">{title}</p>
+        {lines.map((line, i) => line && <p key={i} className="text-xs text-blue-600">{line}</p>)}
+      </div>
+      <div className="text-xs text-right text-black-600">
+        <p>Start Date</p>
+        <p className="font-medium">{date}</p>
+      </div>
+    </div>
+  );
+}
+
+function HistoryRow({ date, dept, doctor, diag, treat }) {
+  return (
+    <tr className="border-t hover:bg-gray-50">
+      <td className="p-4">{date}</td>
+      <td className="p-4">{dept}</td>
+      <td className="p-4">{doctor}</td>
+      <td className="p-4">{diag}</td>
+      <td className="p-4">{treat}</td>
+      <td className="p-4 text-blue-700 font-semibold cursor-pointer hover:underline">View</td>
+    </tr>
+  );
+}
+
+function ActionButton({ icon, text, bgColor, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="text-white px-5 py-3 rounded-lg shadow-md flex items-center gap-2 hover:opacity-90 transition-all duration-300"
+      style={{ backgroundColor: bgColor }}
+    >
+      <span className="text-lg">{icon}</span>
+      <span className="font-medium">{text}</span>
+    </button>
+  );
+}
