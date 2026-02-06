@@ -1,6 +1,6 @@
 
 
-import axios from "axios";
+// import axios from "axios";
 
 const API_BASE_URL = "https://subrhombical-akilah-interproglottidal.ngrok-free.dev";
 const MODEL_MAPPING = {

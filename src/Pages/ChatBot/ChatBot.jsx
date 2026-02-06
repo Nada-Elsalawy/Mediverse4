@@ -14,6 +14,7 @@ export default function ChatBot() {
   const [selectedModel, setSelectedModel] = useState("Gpt-4oMini🚀 ");
   const [isLoading, setIsLoading] = useState(false);
 const patientId =getPatientId();
+const patientData = JSON.parse(localStorage.getItem("patient") || "{}");
   const Models = [
     { key: "Gpt-4o🧠 " },
     { key: "Gpt-4oMini🚀 " },
@@ -35,14 +36,14 @@ const patientId =getPatientId();
     try {
     const consultationData = prepareConsultationData(content, {
   model: selectedModel,
-  patient_age: 25,
+  patient_age: patientData?.age,
   patient_gender: "male",
-  patient_weight: null,
-  patient_height: null,
-  chronic_diseases: [],
-  allergies: [],
-  current_medications: [],
-  use_rag: true,
+  patient_weight: patientData?.weight,
+  patient_height: patientData?.height,
+  chronic_diseases: patientData?.chronic_diseases || [],
+        allergies: patientData?.allergies || [],
+        current_medications: patientData?.medications || patientData?.current_medications || [],
+        use_rag: true,
   top_k: 5,
   ...(patientId && { patient_id: patientId })
 });
