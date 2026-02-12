@@ -12,6 +12,15 @@ import PatientReports from "../src/Pages/PationRports/PatientReports"
 // import ProtectedRoute from '../src/protectedRoutes/ProtectedRoute'
 import ChatBot from './Pages/ChatBot/ChatBot'
 import ProtectedRoute from './protectedRoutes/ProtectedRoute'
+import DrLayout from './Layout/DrLayout'
+
+import LoginDr from '../src/Dr/pages/LoginDr'
+import Wating from '../src/Dr/pages/Wating'
+import Doctor from '../src/Dr/pages/Doctor'
+import Managment from '../src/Dr/pages/Managment'
+import DoctorsManagement from "../src/Managment/DoctorsManagement"
+import MediVerseDashboard from "../src/Managment/MediVerseDashboard"
+import ManagmetLayout from "../src/Managment/Layout"
 const router = createBrowserRouter([
 {
   path:"" ,element: <AuthLayOut/>,children:[
@@ -24,9 +33,26 @@ const router = createBrowserRouter([
    {path:"patient-Details" , element:<ProtectedRoute><PatientDashboard /></ProtectedRoute> },
   {path:"Reports" , element: <ProtectedRoute><Reports /></ProtectedRoute>  },
 {path:"Patient-Reports" , element: <ProtectedRoute><PatientReports /> </ProtectedRoute> },
-{path :"chatBot" , element:<ChatBot/>}]
+{path :"chatBot" , element:<ChatBot/>}],
+
   }
+  ,
+   {path :'' , element: <DrLayout/>, children:[
+    // {index:true, element:<DrHome />},
+{path:"login",element:<LoginDr/>},
+{path:"managment",element:<Managment/>},
+{path:"wating",element:<Wating/>},
+{path:"Dr",element:<Doctor/>},
+  ]},
+   {path :'' , element: <ManagmetLayout/>, children:[
+   
+{path:"MediVerseDashboard",element:<MediVerseDashboard/>},
+{path:"DoctorsManagement",element:<DoctorsManagement/>},
+
+  ]},
+
   ])
+  
 
  
 export default function App() {
