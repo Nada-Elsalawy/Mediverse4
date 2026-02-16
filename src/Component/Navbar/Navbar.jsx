@@ -115,7 +115,7 @@ export default function App() {
             <NavLink
               to={item.path}
               className={({isActive}) => 
-                `w-full text-lg ${isActive ? 'text-blue-600 font-semibold' : 'text-foreground'}`
+                `w-full text-lg ${isActive ? 'text-[#597b97]  font-semibold' : 'text-foreground'}`
               }
               onClick={() => setIsMenuOpen(false)}
             >
