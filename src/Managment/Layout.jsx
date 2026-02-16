@@ -14,9 +14,9 @@ const Layout = ({ children }) => {
         </div>
         <div className="flex gap-3">
           <Link 
-            to="/"
+            to="MediVerseDashboard"
             className={`px-6 py-2 rounded-lg font-medium transition ${
-              location.pathname === '/' 
+              location.pathname === 'MediVerseDashboard' 
                 ? 'bg-slate-700 text-white' 
                 : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
             }`}
